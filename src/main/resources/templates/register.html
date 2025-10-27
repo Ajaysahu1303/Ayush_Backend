@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AYUSH Startup Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 20px auto;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .error-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 5px;
+            display: none;
+        }
+        .is-invalid {
+            border-color: #dc3545;
+        }
+        .invalid-feedback {
+            display: block;
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center mb-4">AYUSH Startup Registration</h2>
+        
+        <div th:if="${error}" class="alert alert-danger" role="alert">
+            <span th:text="${error}"></span>
+        </div>
+        
+        <div th:if="${success}" class="alert alert-success" role="alert">
+            <span th:text="${success}"></span>
+        </div>
+
+        <form th:action="@{/register}" method="post" th:object="${registration}" id="registrationForm">
+            <div class="form-group">
+                <label for="category" class="form-label">Select Category</label>
+                <select class="form-select" th:classappend="${#fields.hasErrors('category')} ? 'is-invalid'" id="category" th:field="*{category}" required>
+                    <option value="">Select a category</option>
+                    <option value="ayurveda">Ayurveda</option>
+                    <option value="yoga">Yoga</option>
+                    <option value="unani">Unani</option>
+                    <option value="siddha">Siddha</option>
+                    <option value="homeopathy">Homeopathy</option>
+                </select>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('category')}" th:errors="*{category}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="organizationPhone" class="form-label">Organization Phone</label>
+                <input type="tel" class="form-control" th:classappend="${#fields.hasErrors('organizationPhone')} ? 'is-invalid'" id="organizationPhone" th:field="*{organizationPhone}" required>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('organizationPhone')}" th:errors="*{organizationPhone}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="organizationEmail" class="form-label">Organization Email</label>
+                <input type="email" class="form-control" th:classappend="${#fields.hasErrors('organizationEmail')} ? 'is-invalid'" id="organizationEmail" th:field="*{organizationEmail}" required>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('organizationEmail')}" th:errors="*{organizationEmail}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" th:classappend="${#fields.hasErrors('username')} ? 'is-invalid'" id="username" th:field="*{username}" required>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="trainerName" class="form-label">Trainer Name</label>
+                <input type="text" class="form-control" th:classappend="${#fields.hasErrors('trainerName')} ? 'is-invalid'" id="trainerName" th:field="*{trainerName}" required>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('trainerName')}" th:errors="*{trainerName}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'" id="password" th:field="*{password}" required>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                <input type="password" class="form-control" th:classappend="${#fields.hasErrors('confirmPassword')} ? 'is-invalid'" id="confirmPassword" th:field="*{confirmPassword}" required>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="country" class="form-label">Select Country</label>
+                <select class="form-select" th:classappend="${#fields.hasErrors('country')} ? 'is-invalid'" id="country" th:field="*{country}" required>
+                    <option value="">Select a country</option>
+                    <option value="india">India</option>
+                </select>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('country')}" th:errors="*{country}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="state" class="form-label">Select State</label>
+                <select class="form-select" th:classappend="${#fields.hasErrors('state')} ? 'is-invalid'" id="state" th:field="*{state}" required>
+                    <option value="">Select a state</option>
+                </select>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('state')}" th:errors="*{state}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="city" class="form-label">Select City</label>
+                <select class="form-select" th:classappend="${#fields.hasErrors('city')} ? 'is-invalid'" id="city" th:field="*{city}" required>
+                    <option value="">Select a city</option>
+                </select>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('city')}" th:errors="*{city}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="pinCode" class="form-label">Area Pin Code</label>
+                <input type="text" class="form-control" th:classappend="${#fields.hasErrors('pinCode')} ? 'is-invalid'" id="pinCode" th:field="*{pinCode}" required>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('pinCode')}" th:errors="*{pinCode}"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="address" class="form-label">Address</label>
+                <textarea class="form-control" th:classappend="${#fields.hasErrors('address')} ? 'is-invalid'" id="address" th:field="*{address}" rows="3" required></textarea>
+                <div class="invalid-feedback" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Register</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // State and City data
+        const states = {
+            india: {
+                'maharashtra': ['Mumbai', 'Pune', 'Nagpur'],
+                'delhi': ['New Delhi', 'Noida', 'Gurgaon'],
+                'karnataka': ['Bangalore', 'Mysore', 'Hubli'],
+                'tamilnadu': ['Chennai', 'Coimbatore', 'Madurai']
+            }
+        };
+
+        // Function to populate states
+        function populateStates(country, selectedState = '') {
+            const stateSelect = document.getElementById('state');
+            stateSelect.innerHTML = '<option value="">Select a state</option>';
+            
+            if (states[country]) {
+                Object.keys(states[country]).forEach(state => {
+                    const option = document.createElement('option');
+                    option.value = state;
+                    option.textContent = state.charAt(0).toUpperCase() + state.slice(1);
+                    if (state === selectedState) {
+                        option.selected = true;
+                    }
+                    stateSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Function to populate cities
+        function populateCities(country, state, selectedCity = '') {
+            const citySelect = document.getElementById('city');
+            citySelect.innerHTML = '<option value="">Select a city</option>';
+            
+            if (states[country] && states[country][state]) {
+                states[country][state].forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    if (city === selectedCity) {
+                        option.selected = true;
+                    }
+                    citySelect.appendChild(option);
+                });
+            }
+        }
+
+        // Get the selected values from Thymeleaf
+        const selectedCountry = document.getElementById('country').value;
+        const selectedState = document.getElementById('state').value;
+        const selectedCity = document.getElementById('city').value;
+
+        // Populate states and cities on page load if country is selected
+        if (selectedCountry) {
+            populateStates(selectedCountry, selectedState);
+            if (selectedState) {
+                populateCities(selectedCountry, selectedState, selectedCity);
+            }
+        }
+
+        // Populate states when country is selected
+        document.getElementById('country').addEventListener('change', function() {
+            const country = this.value;
+            populateStates(country);
+        });
+
+        // Populate cities when state is selected
+        document.getElementById('state').addEventListener('change', function() {
+            const country = document.getElementById('country').value;
+            const state = this.value;
+            populateCities(country, state);
+        });
+
+        // Password validation
+        document.getElementById('registrationForm').addEventListener('submit', function(e) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const passwordMatchError = document.getElementById('confirmPassword').nextElementSibling;
+
+            if (password !== confirmPassword) {
+                e.preventDefault();
+                document.getElementById('confirmPassword').classList.add('is-invalid');
+                passwordMatchError.textContent = 'Passwords do not match';
+                passwordMatchError.style.display = 'block';
+            } else {
+                document.getElementById('confirmPassword').classList.remove('is-invalid');
+                passwordMatchError.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AYUSH Startup Application Form</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .form-section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        .section-title {
+            color: #007bff;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .required-field::after {
+            content: " *";
+            color: red;
+        }
+        .file-upload-area {
+            border: 2px dashed #007bff;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+            background: #f8f9fa;
+            margin-bottom: 10px;
+        }
+        .file-upload-area:hover {
+            background: #e9ecef;
+        }
+        .status-badge {
+            font-size: 0.9em;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse" style="min-height: 100vh;">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/dashboard">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white active" href="/application">
+                                <i class="fas fa-file-alt"></i> Application Form
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/application/status">
+                                <i class="fas fa-chart-line"></i> Application Status
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/profile">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/chatbot">
+                                <i class="fas fa-robot"></i> AI Assistant
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/logout">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="fas fa-file-alt text-primary"></i> AYUSH Startup Application Form
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <a href="/application/status" class="btn btn-outline-secondary">
+                                <i class="fas fa-eye"></i> View Status
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Application Status Badge -->
+                <div th:if="${hasExistingApplication}" class="mb-3">
+                    <span class="badge bg-info status-badge">
+                        <i class="fas fa-info-circle"></i> 
+                        Current Status: <span th:text="${application.status.displayName}"></span>
+                    </span>
+                </div>
+
+                <form th:action="@{/application/save}" th:object="${application}" method="post" enctype="multipart/form-data">
+                    <input type="hidden" th:field="*{id}" />
+                    <input type="hidden" th:field="*{user.id}" />
+
+                    <!-- Personal Details Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-user"></i> Personal Details
+                        </h3>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="fullName" class="form-label required-field">Full Name</label>
+                                <input type="text" class="form-control" id="fullName" th:field="*{fullName}" required>
+                                <div th:if="${#fields.hasErrors('fullName')}" class="text-danger">
+                                    <span th:errors="*{fullName}"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="dateOfBirth" class="form-label required-field">Date of Birth</label>
+                                <input type="date" class="form-control" id="dateOfBirth" th:field="*{dateOfBirth}" required>
+                                <div th:if="${#fields.hasErrors('dateOfBirth')}" class="text-danger">
+                                    <span th:errors="*{dateOfBirth}"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="gender" class="form-label required-field">Gender</label>
+                                <select class="form-select" id="gender" th:field="*{gender}" required>
+                                    <option value="">Select Gender</option>
+                                    <option th:each="option : ${genderOptions}" 
+                                            th:value="${option}" 
+                                            th:text="${option}"></option>
+                                </select>
+                                <div th:if="${#fields.hasErrors('gender')}" class="text-danger">
+                                    <span th:errors="*{gender}"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="nationality" class="form-label required-field">Nationality</label>
+                                <select class="form-select" id="nationality" th:field="*{nationality}" required>
+                                    <option value="">Select Nationality</option>
+                                    <option th:each="option : ${nationalityOptions}" 
+                                            th:value="${option}" 
+                                            th:text="${option}"></option>
+                                </select>
+                                <div th:if="${#fields.hasErrors('nationality')}" class="text-danger">
+                                    <span th:errors="*{nationality}"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="panNumber" class="form-label required-field">PAN Number</label>
+                                <input type="text" class="form-control" id="panNumber" th:field="*{panNumber}" 
+                                       placeholder="ABCDE1234F" maxlength="10" required>
+                                <div th:if="${#fields.hasErrors('panNumber')}" class="text-danger">
+                                    <span th:errors="*{panNumber}"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="aadhaarNumber" class="form-label required-field">Aadhaar Number</label>
+                                <input type="text" class="form-control" id="aadhaarNumber" th:field="*{aadhaarNumber}" 
+                                       placeholder="123456789012" maxlength="12" required>
+                                <div th:if="${#fields.hasErrors('aadhaarNumber')}" class="text-danger">
+                                    <span th:errors="*{aadhaarNumber}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Company Details Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-building"></i> Company Details
+                        </h3>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="companyName" class="form-label required-field">Company Name</label>
+                                <input type="text" class="form-control" id="companyName" th:field="*{companyName}" required>
+                                <div th:if="${#fields.hasErrors('companyName')}" class="text-danger">
+                                    <span th:errors="*{companyName}"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="companyType" class="form-label required-field">Company Type</label>
+                                <select class="form-select" id="companyType" th:field="*{companyType}" required>
+                                    <option value="">Select Company Type</option>
+                                    <option th:each="option : ${companyTypeOptions}" 
+                                            th:value="${option}" 
+                                            th:text="${option}"></option>
+                                </select>
+                                <div th:if="${#fields.hasErrors('companyType')}" class="text-danger">
+                                    <span th:errors="*{companyType}"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="businessCategory" class="form-label required-field">Business Category</label>
+                                <select class="form-select" id="businessCategory" th:field="*{businessCategory}" required>
+                                    <option value="">Select Business Category</option>
+                                    <option th:each="option : ${businessCategoryOptions}" 
+                                            th:value="${option}" 
+                                            th:text="${option}"></option>
+                                </select>
+                                <div th:if="${#fields.hasErrors('businessCategory')}" class="text-danger">
+                                    <span th:errors="*{businessCategory}"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="gstNumber" class="form-label required-field">GST Number</label>
+                                <input type="text" class="form-control" id="gstNumber" th:field="*{gstNumber}" 
+                                       placeholder="22AAAAA0000A1Z5" required>
+                                <div th:if="${#fields.hasErrors('gstNumber')}" class="text-danger">
+                                    <span th:errors="*{gstNumber}"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="companyDescription" class="form-label required-field">Company Description</label>
+                            <textarea class="form-control" id="companyDescription" th:field="*{companyDescription}" 
+                                      rows="4" placeholder="Describe your company, products/services, and business model..." required></textarea>
+                            <div th:if="${#fields.hasErrors('companyDescription')}" class="text-danger">
+                                <span th:errors="*{companyDescription}"></span>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="businessPhone" class="form-label required-field">Business Phone</label>
+                                <input type="tel" class="form-control" id="businessPhone" th:field="*{businessPhone}" 
+                                       placeholder="9876543210" maxlength="10" required>
+                                <div th:if="${#fields.hasErrors('businessPhone')}" class="text-danger">
+                                    <span th:errors="*{businessPhone}"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="businessEmail" class="form-label required-field">Business Email</label>
+                                <input type="email" class="form-control" id="businessEmail" th:field="*{businessEmail}" required>
+                                <div th:if="${#fields.hasErrors('businessEmail')}" class="text-danger">
+                                    <span th:errors="*{businessEmail}"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="businessAddress" class="form-label required-field">Business Address</label>
+                            <textarea class="form-control" id="businessAddress" th:field="*{businessAddress}" 
+                                      rows="3" required></textarea>
+                            <div th:if="${#fields.hasErrors('businessAddress')}" class="text-danger">
+                                <span th:errors="*{businessAddress}"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Financial Details Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-chart-line"></i> Financial Details
+                        </h3>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="annualTurnover" class="form-label required-field">Annual Turnover (₹)</label>
+                                <input type="number" class="form-control" id="annualTurnover" th:field="*{annualTurnover}" 
+                                       min="0" step="0.01" required>
+                                <div th:if="${#fields.hasErrors('annualTurnover')}" class="text-danger">
+                                    <span th:errors="*{annualTurnover}"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="investmentAmount" class="form-label required-field">Investment Amount (₹)</label>
+                                <input type="number" class="form-control" id="investmentAmount" th:field="*{investmentAmount}" 
+                                       min="0" step="0.01" required>
+                                <div th:if="${#fields.hasErrors('investmentAmount')}" class="text-danger">
+                                    <span th:errors="*{investmentAmount}"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Document Upload Section -->
+                    <div class="form-section">
+                        <h3 class="section-title">
+                            <i class="fas fa-upload"></i> Document Upload
+                        </h3>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">PAN Card</label>
+                                <div class="file-upload-area">
+                                    <input type="file" class="form-control" id="panCard" name="panCard" 
+                                           accept=".pdf,.jpg,.jpeg,.png" onchange="uploadDocument(this, 'panCard')">
+                                    <small class="text-muted">Upload PAN card (PDF, JPG, PNG)</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Aadhaar Card</label>
+                                <div class="file-upload-area">
+                                    <input type="file" class="form-control" id="aadhaarCard" name="aadhaarCard" 
+                                           accept=".pdf,.jpg,.jpeg,.png" onchange="uploadDocument(this, 'aadhaarCard')">
+                                    <small class="text-muted">Upload Aadhaar card (PDF, JPG, PNG)</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Business Plan</label>
+                                <div class="file-upload-area">
+                                    <input type="file" class="form-control" id="businessPlan" name="businessPlan" 
+                                           accept=".pdf,.doc,.docx" onchange="uploadDocument(this, 'businessPlan')">
+                                    <small class="text-muted">Upload business plan (PDF, DOC, DOCX)</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Financial Statement</label>
+                                <div class="file-upload-area">
+                                    <input type="file" class="form-control" id="financialStatement" name="financialStatement" 
+                                           accept=".pdf,.xls,.xlsx" onchange="uploadDocument(this, 'financialStatement')">
+                                    <small class="text-muted">Upload financial statement (PDF, XLS, XLSX)</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Certificates (Optional)</label>
+                                <div class="file-upload-area">
+                                    <input type="file" class="form-control" id="certificate" name="certificate" 
+                                           accept=".pdf,.jpg,.jpeg,.png" onchange="uploadDocument(this, 'certificate')">
+                                    <small class="text-muted">Upload relevant certificates (PDF, JPG, PNG)</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between mb-4">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-save"></i> Save Application
+                        </button>
+                        <div th:if="${hasExistingApplication and application.status.name() == 'DRAFT'}">
+                            <button type="button" class="btn btn-success btn-lg" onclick="submitApplication()">
+                                <i class="fas fa-paper-plane"></i> Submit Application
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function uploadDocument(input, documentType) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('documentType', documentType);
+            formData.append('applicationId', document.getElementById('id').value);
+
+            fetch('/application/upload-document', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(result => {
+                if (result.includes('successfully')) {
+                    alert('Document uploaded successfully!');
+                } else {
+                    alert('Failed to upload document: ' + result);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to upload document');
+            });
+        }
+
+        function submitApplication() {
+            if (confirm('Are you sure you want to submit this application? You cannot edit it after submission.')) {
+                const applicationId = document.getElementById('id').value;
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/application/submit';
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'applicationId';
+                input.value = applicationId;
+                
+                form.appendChild(input);
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+</body>
+</html> 

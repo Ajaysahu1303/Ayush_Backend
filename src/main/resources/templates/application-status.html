@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Status - AYUSH Startup Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .status-card {
+            border-left: 4px solid #007bff;
+            background: #f8f9fa;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        .status-badge {
+            font-size: 1.1em;
+            padding: 8px 16px;
+        }
+        .status-draft { background-color: #6c757d; }
+        .status-submitted { background-color: #17a2b8; }
+        .status-in-review { background-color: #ffc107; color: #000; }
+        .status-approved { background-color: #28a745; }
+        .status-rejected { background-color: #dc3545; }
+        .info-section {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .section-title {
+            color: #007bff;
+            font-weight: bold;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #007bff;
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -22px;
+            top: 5px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #007bff;
+        }
+        .timeline-item.completed::before {
+            background: #28a745;
+        }
+        .document-item {
+            background: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-left: 3px solid #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse" style="min-height: 100vh;">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/dashboard">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/application">
+                                <i class="fas fa-file-alt"></i> Application Form
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white active" href="/application/status">
+                                <i class="fas fa-chart-line"></i> Application Status
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/profile">
+                                <i class="fas fa-user"></i> Profile
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/chatbot">
+                                <i class="fas fa-robot"></i> AI Assistant
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white" href="/logout">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- Main content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="fas fa-chart-line text-primary"></i> Application Status
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <a href="/application" class="btn btn-outline-primary">
+                                <i class="fas fa-edit"></i> Edit Application
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert Messages -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle"></i> <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle"></i> <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- Application Status Card -->
+                <div class="status-card">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h3 class="mb-2">
+                                <i class="fas fa-building"></i> 
+                                <span th:text="${application.companyName}"></span>
+                            </h3>
+                            <p class="text-muted mb-0">
+                                <strong>Application ID:</strong> <span th:text="${application.id}"></span> | 
+                                <strong>Category:</strong> <span th:text="${application.businessCategory}"></span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <span th:class="'badge status-badge status-' + ${#strings.toLowerCase(application.status.name())}">
+                                <i class="fas fa-circle"></i> 
+                                <span th:text="${application.status.displayName}"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Application Timeline -->
+                <div class="info-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-clock"></i> Application Timeline
+                    </h4>
+                    <div class="timeline">
+                        <div class="timeline-item completed">
+                            <strong>Application Created</strong>
+                            <div class="text-muted">
+                                <i class="fas fa-calendar"></i> 
+                                <span th:text="${#temporals.format(application.createdAt, 'dd MMM yyyy, HH:mm')}"></span>
+                            </div>
+                        </div>
+                        
+                        <div th:if="${application.submittedAt != null}" class="timeline-item completed">
+                            <strong>Application Submitted</strong>
+                            <div class="text-muted">
+                                <i class="fas fa-calendar"></i> 
+                                <span th:text="${#temporals.format(application.submittedAt, 'dd MMM yyyy, HH:mm')}"></span>
+                            </div>
+                        </div>
+                        
+                        <div th:if="${application.reviewedAt != null}" class="timeline-item completed">
+                            <strong>Application Reviewed</strong>
+                            <div class="text-muted">
+                                <i class="fas fa-calendar"></i> 
+                                <span th:text="${#temporals.format(application.reviewedAt, 'dd MMM yyyy, HH:mm')}"></span>
+                            </div>
+                        </div>
+                        
+                        <div th:if="${application.status.name() == 'DRAFT'}" class="timeline-item">
+                            <strong>Ready for Submission</strong>
+                            <div class="text-muted">Your application is ready to be submitted for review</div>
+                        </div>
+                        
+                        <div th:if="${application.status.name() == 'SUBMITTED'}" class="timeline-item">
+                            <strong>Under Review</strong>
+                            <div class="text-muted">Your application is being reviewed by our team</div>
+                        </div>
+                        
+                        <div th:if="${application.status.name() == 'IN_REVIEW'}" class="timeline-item">
+                            <strong>Detailed Review</strong>
+                            <div class="text-muted">Your application is undergoing detailed review</div>
+                        </div>
+                        
+                        <div th:if="${application.status.name() == 'APPROVED'}" class="timeline-item completed">
+                            <strong>Application Approved</strong>
+                            <div class="text-success">Congratulations! Your application has been approved</div>
+                        </div>
+                        
+                        <div th:if="${application.status.name() == 'REJECTED'}" class="timeline-item completed">
+                            <strong>Application Rejected</strong>
+                            <div class="text-danger">Your application has been rejected</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Application Details -->
+                <div class="row">
+                    <!-- Personal Details -->
+                    <div class="col-md-6">
+                        <div class="info-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-user"></i> Personal Details
+                            </h4>
+                            <div class="row">
+                                <div class="col-6"><strong>Full Name:</strong></div>
+                                <div class="col-6" th:text="${application.fullName}"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6"><strong>Date of Birth:</strong></div>
+                                <div class="col-6" th:text="${application.dateOfBirth}"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6"><strong>Gender:</strong></div>
+                                <div class="col-6" th:text="${application.gender}"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6"><strong>Nationality:</strong></div>
+                                <div class="col-6" th:text="${application.nationality}"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6"><strong>PAN Number:</strong></div>
+                                <div class="col-6" th:text="${application.panNumber}"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6"><strong>Aadhaar Number:</strong></div>
+                                <div class="col-6" th:text="${application.aadhaarNumber}"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Company Details -->
+                    <div class="col-md-6">
+                        <div class="info-section">
+                            <h4 class="section-title">
+                                <i class="fas fa-building"></i> Company Details
+                            </h4>
+                            <div class="row">
+                                <div class="col-6"><strong>Company Name:</strong></div>
+                                <div class="col-6" th:text="${application.companyName}"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6"><strong>Company Type:</strong></div>
+                                <div class="col-6" th:text="${application.companyType}"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6"><strong>Business Category:</strong></div>
+                                <div class="col-6" th:text="${application.businessCategory}"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6"><strong>GST Number:</strong></div>
+                                <div class="col-6" th:text="${application.gstNumber}"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6"><strong>Business Phone:</strong></div>
+                                <div class="col-6" th:text="${application.businessPhone}"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6"><strong>Business Email:</strong></div>
+                                <div class="col-6" th:text="${application.businessEmail}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Company Description -->
+                <div class="info-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-info-circle"></i> Company Description
+                    </h4>
+                    <p th:text="${application.companyDescription}"></p>
+                </div>
+
+                <!-- Financial Details -->
+                <div class="info-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-chart-line"></i> Financial Details
+                    </h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Annual Turnover</h5>
+                                    <h3 class="text-primary">₹<span th:text="${#numbers.formatDecimal(application.annualTurnover, 1, 2)}"></span></h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Investment Amount</h5>
+                                    <h3 class="text-success">₹<span th:text="${#numbers.formatDecimal(application.investmentAmount, 1, 2)}"></span></h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Uploaded Documents -->
+                <div class="info-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-file-upload"></i> Uploaded Documents
+                    </h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div th:if="${application.panCardPath != null}" class="document-item">
+                                <i class="fas fa-file-pdf text-danger"></i>
+                                <strong>PAN Card</strong>
+                                <a th:href="@{'/application/download-document/' + ${application.panCardPath}}" 
+                                   class="btn btn-sm btn-outline-primary float-end">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                            </div>
+                            <div th:if="${application.aadhaarCardPath != null}" class="document-item">
+                                <i class="fas fa-file-pdf text-danger"></i>
+                                <strong>Aadhaar Card</strong>
+                                <a th:href="@{'/application/download-document/' + ${application.aadhaarCardPath}}" 
+                                   class="btn btn-sm btn-outline-primary float-end">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                            </div>
+                            <div th:if="${application.businessPlanPath != null}" class="document-item">
+                                <i class="fas fa-file-word text-primary"></i>
+                                <strong>Business Plan</strong>
+                                <a th:href="@{'/application/download-document/' + ${application.businessPlanPath}}" 
+                                   class="btn btn-sm btn-outline-primary float-end">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div th:if="${application.financialStatementPath != null}" class="document-item">
+                                <i class="fas fa-file-excel text-success"></i>
+                                <strong>Financial Statement</strong>
+                                <a th:href="@{'/application/download-document/' + ${application.financialStatementPath}}" 
+                                   class="btn btn-sm btn-outline-primary float-end">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                            </div>
+                            <div th:if="${application.certificatePath != null}" class="document-item">
+                                <i class="fas fa-certificate text-warning"></i>
+                                <strong>Certificates</strong>
+                                <a th:href="@{'/application/download-document/' + ${application.certificatePath}}" 
+                                   class="btn btn-sm btn-outline-primary float-end">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reviewer Comments -->
+                <div th:if="${application.reviewerComments != null and !application.reviewerComments.isEmpty()}" class="info-section">
+                    <h4 class="section-title">
+                        <i class="fas fa-comments"></i> Reviewer Comments
+                    </h4>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <span th:text="${application.reviewerComments}"></span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex justify-content-between mb-4">
+                    <div>
+                        <a href="/application" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Edit Application
+                        </a>
+                        <a href="/dashboard" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Dashboard
+                        </a>
+                    </div>
+                    <div th:if="${application.status.name() == 'DRAFT'}">
+                        <form th:action="@{/application/submit}" method="post" style="display: inline;">
+                            <input type="hidden" name="applicationId" th:value="${application.id}" />
+                            <button type="submit" class="btn btn-success" 
+                                    onclick="return confirm('Are you sure you want to submit this application? You cannot edit it after submission.')">
+                                <i class="fas fa-paper-plane"></i> Submit Application
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 
