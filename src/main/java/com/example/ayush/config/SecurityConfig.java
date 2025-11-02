@@ -26,27 +26,51 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.cors();
-        http.csrf().disable();
-        http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint());
+        // http.cors();
+        // http.csrf().disable();
+        // http.exceptionHandling().authenticationEntryPoint(authenticationEntryPoint());
 
-        http
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**", "/api/registration/**", "/api/home", "/api/admin/login").permitAll()
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                .anyRequest().hasRole("USER")
-            )
-            .formLogin(form -> form
-                .successHandler((request, response, authentication) -> {
-                    response.setStatus(HttpServletResponse.SC_OK);
-                })
-                .failureHandler((request, response, exception) -> {
-                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                })
-            )
-            .logout().permitAll();
+        // http
+        //     .authorizeHttpRequests(auth -> auth
+        //         .requestMatchers("/api/auth/**", "/api/registration/**", "/api/home", "/api/admin/login").permitAll()
+        //         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+        //         .anyRequest().hasRole("USER")
+        //     )
+        //     .formLogin(form -> form
+        //         .successHandler((request, response, authentication) -> {
+        //             response.setStatus(HttpServletResponse.SC_OK);
+        //         })
+        //         .failureHandler((request, response, exception) -> {
+        //             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        //         })
+        //     )
+        //     .logout().permitAll();
 
-        return http.build();
+        
+
+        // return http.build();
+         http
+        .cors(cors -> cors.configurationSource(request -> {
+            CorsConfiguration config = new CorsConfiguration();
+            config.setAllowedOrigins(Arrays.asList("https://ayushstartupportalucer.vercel.app"));
+            config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+            config.setAllowedHeaders(Arrays.asList("*"));
+            config.setAllowCredentials(true);
+            config.setMaxAge(3600L);
+            return config;
+        }))
+        .csrf(csrf -> csrf.disable())
+        .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint()).and()
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/api/auth/**", "/api/registration/**", "/api/home", "/api/admin/login").permitAll()
+            .requestMatchers("/api/admin/**").hasRole("ADMIN")
+            .anyRequest().hasRole("USER"))
+        .formLogin(form -> form
+            .successHandler((req, res, auth) -> res.setStatus(HttpServletResponse.SC_OK))
+            .failureHandler((req, res, ex) -> res.setStatus(HttpServletResponse.SC_UNAUTHORIZED)))
+        .logout().permitAll();
+
+    return http.build();
     }
 
     @Bean
@@ -54,9 +78,10 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // @Bean
-    // public CookieSameSiteSupplier applicationCookieSameSiteSupplier() {
-    //     // Set SameSite=None for all cookies
-    //     return CookieSameSiteSupplier.ofNone();
-    // }
+    // ✅ Allow cookies to be sent cross-site (Vercel -> Railway)
+
+    @Bean
+    public CookieSameSiteSupplier applicationCookieSameSiteSupplier() {
+        return CookieSameSiteSupplier.ofNone();
+    }
 } 
